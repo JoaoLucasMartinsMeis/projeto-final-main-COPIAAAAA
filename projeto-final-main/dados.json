@@ -1,0 +1,112 @@
+{
+    "movimentacoes": [
+        {
+            "tipo": "receita",
+            "categoria": "salario",
+            "descricao": "salario junho",
+            "valor": 3500.0
+        },
+        {
+            "tipo": "receita",
+            "categoria": "freelance",
+            "descricao": "site para cliente",
+            "valor": 1200.0
+        },
+        {
+            "tipo": "receita",
+            "categoria": "investimentos",
+            "descricao": "rendimentos cdb",
+            "valor": 85.5
+        },
+        {
+            "tipo": "receita",
+            "categoria": "vendas",
+            "descricao": "venda de monitor usado",
+            "valor": 600.0
+        },
+        {
+            "tipo": "receita",
+            "categoria": "presentes",
+            "descricao": "presente de aniversario",
+            "valor": 100.0
+        },
+        {
+            "tipo": "despesa",
+            "categoria": "alimentacao",
+            "descricao": "mercado do mes",
+            "valor": 450.75
+        },
+        {
+            "tipo": "despesa",
+            "categoria": "alimentacao",
+            "descricao": "almoco restaurante",
+            "valor": 42.9
+        },
+        {
+            "tipo": "despesa",
+            "categoria": "transporte",
+            "descricao": "combustivel",
+            "valor": 250.0
+        },
+        {
+            "tipo": "despesa",
+            "categoria": "moradia",
+            "descricao": "aluguel",
+            "valor": 1200.0
+        },
+        {
+            "tipo": "despesa",
+            "categoria": "contas",
+            "descricao": "energia eletrica",
+            "valor": 180.4
+        },
+        {
+            "tipo": "despesa",
+            "categoria": "contas",
+            "descricao": "internet",
+            "valor": 99.9
+        },
+        {
+            "tipo": "despesa",
+            "categoria": "saude",
+            "descricao": "farmacia",
+            "valor": 75.3
+        },
+        {
+            "tipo": "despesa",
+            "categoria": "educacao",
+            "descricao": "curso de python",
+            "valor": 129.9
+        },
+        {
+            "tipo": "despesa",
+            "categoria": "lazer",
+            "descricao": "cinema",
+            "valor": 38.0
+        },
+        {
+            "tipo": "despesa",
+            "categoria": "vestuario",
+            "descricao": "camiseta",
+            "valor": 79.9
+        },
+        {
+            "tipo": "despesa",
+            "categoria": "outros",
+            "descricao": "manutencao computador",
+            "valor": 150.0
+        },
+        {
+            "tipo": "receita",
+            "categoria": "investimentos",
+            "descricao": "tigrinho",
+            "valor": 300.0
+        },
+        {
+            "tipo": "receita",
+            "categoria": "salário",
+            "descricao": "pagamento",
+            "valor": 5000.5
+        }
+    ]
+}
