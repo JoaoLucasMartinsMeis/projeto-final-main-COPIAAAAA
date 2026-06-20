@@ -37,10 +37,9 @@ def carregar_dados():
 
 if not os.path.exists(arquivo):
     salvar_dados({
+        "limite_credito": 1000,
         "movimentacoes": []
     })
-
-dados = carregar_dados()
 
 
 def mostrar_categorias(tipo):
@@ -65,34 +64,67 @@ def converter_categoria(categoria, tipo):
 
 def escolher_categoria(tipo):
   while True:
-    categoria = int(input(f'\nClassifique sua categoria com uma das acima: '))
+    try:
+      categoria = int(input(f'\nClassifique sua categoria com uma das acima: '))
 
-    if tipo == 'receita' and 1 <= categoria <= len(categorias_receitas):
-      return categoria
-    elif tipo == 'despesa' and 1 <= categoria <= len(categorias_despesas):
-      return categoria
+      if tipo == 'receita' and 1 <= categoria <= len(categorias_receitas):
+        return categoria
+      elif tipo == 'despesa' and 1 <= categoria <= len(categorias_despesas):
+        return categoria
     
-    print('Categoria inválida')
+      print('Categoria inválida')
+
+    except ValueError:
+      print("Digite apenas números")
 
 
 def cadastrar(tipo):
   mostrar_categorias(tipo)
   categoria_escolhida = escolher_categoria(tipo)
-  descricao = input(f'Digite a descrição da {tipo}: ').lower()
-  valor = float(input(f'Digite o valor da {tipo}: '))
 
-  while valor <= 0:
-    print('O valor não pode ser menor ou igual a zero')
-    valor = float(input(f'Digite o valor da {tipo}: '))
+  descricao = input(f'Digite a descrição da {tipo}: ').lower()
+  
+  while True:
+    try:
+      valor = float(input(f'Digite o valor da {tipo}: '))
+
+      if valor > 0:
+        break
+
+      print('\nO valor não pode ser menor ou igual a zero')
+
+    except ValueError:
+      print('\nValor inválido. Por favor, digite um número.')
 
   categoria = converter_categoria(categoria_escolhida, tipo)
-
+  
   return {
     "tipo": tipo,
     "categoria": categoria,
     "descricao": descricao,
     "valor": valor
   }
+
+
+def alterar_limite():
+  dados = carregar_dados()
+  print(f'\nLimite atual: R$ {dados["limite_credito"]:.2f}')
+
+  while True:
+    try:
+      novo_limite = float(input('Digite o novo limite de crédito: '))
+
+      if novo_limite > 0:
+        break
+      print('\nO limite de crédito deve ser maior que zero.')
+
+    except ValueError:
+      print('\nValor inválido. Por favor, digite um número.')
+
+  dados['limite_credito'] = novo_limite
+
+  salvar_dados(dados)
+  print("Limite alterado com sucesso!")
 
 
 def calcular_saldo():
@@ -105,29 +137,37 @@ def calcular_saldo():
       saldo_atual -= movimentacao['valor']
   return saldo_atual
 
-def validar_cadastro(movimentacao):
-  saldo_atual = calcular_saldo()
-
-  if saldo_atual <= -1000:
-    print("Essa operação ultrapassa seu limite de crédito! Cadastro cancelado!")
-    return False
-
-  elif saldo_atual <= -1:
-    print("Atenção! Esta operação deixará seu saldo negativo.")
-
-  elif saldo_atual > pre_cadastro and pre_cadastro <= -1:
-    print("Parabéns! Seu saldo voltou ao positivo.")
-
 
 def consultar_saldo():
+  saldo = calcular_saldo()
+  print(f'\nSaldo Atual: R$ {saldo:.2f}\n')
+
+
+def validar_cadastro(movimentacao):
+  saldo_atual = calcular_saldo()
   dados = carregar_dados()
-  saldo = 0
-  for movimentacao in dados['movimentacoes']:
-    if movimentacao['tipo'] == 'receita':
-      saldo += movimentacao['valor']
-    elif movimentacao['tipo'] == 'despesa':
-      saldo -= movimentacao['valor']
-  print(f'Saldo Atual: R$ {saldo:.2f}')
+  limite_credito = dados['limite_credito']
+
+  if movimentacao['tipo'] == 'receita':
+    saldo_futuro = saldo_atual + movimentacao['valor']
+
+  else:
+    saldo_futuro = saldo_atual - movimentacao['valor']
+
+  if saldo_futuro < -limite_credito:
+    print("\nEssa operação ultrapassa seu limite de crédito! Cadastro cancelado!")
+    return False
+
+  elif saldo_futuro < 0:
+    print("\nAtenção! Esta operação deixará seu saldo negativo.")
+    return True
+
+  elif saldo_atual < 0 and saldo_futuro >= 0:
+    print("\nParabéns! Seu saldo voltou ao positivo.")
+    return True
+  
+  else:
+    return True
       
 
 def consultar_historico():
@@ -150,14 +190,8 @@ def consultar_transacao_por_categoria(categoria):
       for keys, value in movimentacao.items():
         print(f'{keys}: {value}')
   if contador == 0:
-    print('Não foi encontrada nenhuma transação com esta categoria')
+    print('\nNão foi encontrada nenhuma transação com esta categoria')
   print('\n')
-
-
-def categorias():
-  dados = carregar_dados()
-  for movimentacao in dados['movimentacoes']:
-    print(movimentacao)
 
 
 while opcao != 0:
@@ -167,38 +201,62 @@ while opcao != 0:
   print('3 - Consultar resumo do saldo')
   print('4 - Ver histórico de transações')
   print('5 - Consulta de transação por categoria')
+  print('6 - Alterar limite de crédito')
   print('0 - Sair\n')
-  opcao = int(input('Escolha uma opção: '))
+
+  try:
+    opcao = int(input('Escolha uma opção: '))
+
+  except ValueError:
+    print('Opção inválida. Por favor, digite um número.')
+    continue
 
   if opcao == 1:
-    pre_cadastro = calcular_saldo()
     movimentacao = cadastrar('receita')
-    validar_cadastro()
-    dados['movimentacoes'].append(movimentacao)
-    salvar_dados(dados)
+    transacao_permitida = validar_cadastro(movimentacao)
 
-    print('Receita cadastrada com sucesso')
+    if transacao_permitida:
+      dados = carregar_dados()
+      dados['movimentacoes'].append(movimentacao)
+      salvar_dados(dados)
+      print('\nReceita cadastrada com sucesso')
+
+    else:
+      print('Receita não cadastrada')
+
     consultar_saldo()
 
-  if opcao == 2:
-    pre_cadastro = calcular_saldo()
+  elif opcao == 2:
     movimentacao = cadastrar('despesa')
-    validar_cadastro()
-    dados['movimentacoes'].append(movimentacao)
-    salvar_dados(dados)
+    transacao_permitida = validar_cadastro(movimentacao)
 
-    print('Despesa cadastrada com sucesso')
+    if transacao_permitida:
+      dados = carregar_dados()
+      dados['movimentacoes'].append(movimentacao)
+      salvar_dados(dados)
+      print('\nDespesa cadastrada com sucesso')
+
+    else:
+      print('Despesa não cadastrada')
+
     consultar_saldo()
 
-  if opcao == 3:
+  elif opcao == 3:
     consultar_saldo()
 
-  if opcao == 4:
+  elif opcao == 4:
     consultar_historico()
 
-  if opcao == 5:
+  elif opcao == 5:
     tipo = input('Você deseja buscar uma receita ou despesa? ').lower().replace(" ", "")
     mostrar_categorias(tipo)
     categoria_escolhida = escolher_categoria(tipo)
     categoria = converter_categoria(categoria_escolhida, tipo)
     consultar_transacao_por_categoria(categoria)
+
+  elif opcao == 6:
+    alterar_limite()
+
+  else:
+    print('Opção inválida. Por favor, escolha uma opção válida.')
+    continue
