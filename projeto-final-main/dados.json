@@ -1,35 +1,113 @@
 {
-    "limite_credito": 400.0,
+    "saldo_minimo": 500.0,
     "movimentacoes": [
         {
             "tipo": "receita",
             "categoria": "salário",
-            "descricao": "salário da firma",
-            "valor": 3100.99
+            "descricao": "salário junho",
+            "valor": 3150.0
+        },
+        {
+            "tipo": "investimento",
+            "categoria": "investimentos",
+            "descricao": "investido através da receita salário junho",
+            "valor": 350.0
+        },
+        {
+            "tipo": "receita",
+            "categoria": "freelance",
+            "descricao": "site para cliente",
+            "valor": 1080.0
+        },
+        {
+            "tipo": "investimento",
+            "categoria": "investimentos",
+            "descricao": "investido através da receita site para cliente",
+            "valor": 120.0
         },
         {
             "tipo": "receita",
             "categoria": "vendas",
-            "descricao": "vendi meu pc",
-            "valor": 7000.0
+            "descricao": "venda de monitor usado",
+            "valor": 600.0
+        },
+        {
+            "tipo": "receita",
+            "categoria": "presentes",
+            "descricao": "presente de aniversário",
+            "valor": 100.0
+        },
+        {
+            "tipo": "receita",
+            "categoria": "outros",
+            "descricao": "rendimento cdb",
+            "valor": 85.5
+        },
+        {
+            "tipo": "despesa",
+            "categoria": "alimentação",
+            "descricao": "mercado do mês",
+            "valor": 450.75
+        },
+        {
+            "tipo": "despesa",
+            "categoria": "alimentação",
+            "descricao": "almoço restaurante",
+            "valor": 42.9
+        },
+        {
+            "tipo": "despesa",
+            "categoria": "transporte",
+            "descricao": "combustível",
+            "valor": 250.0
         },
         {
             "tipo": "despesa",
             "categoria": "moradia",
             "descricao": "aluguel",
-            "valor": 1000.0
+            "valor": 1200.0
         },
         {
             "tipo": "despesa",
-            "categoria": "alimentação",
-            "descricao": "rancho",
-            "valor": 2000.0
+            "categoria": "contas",
+            "descricao": "energia elétrica",
+            "valor": 180.4
+        },
+        {
+            "tipo": "despesa",
+            "categoria": "contas",
+            "descricao": "internet",
+            "valor": 99.9
+        },
+        {
+            "tipo": "despesa",
+            "categoria": "saúde",
+            "descricao": "farmácia",
+            "valor": 75.3
+        },
+        {
+            "tipo": "despesa",
+            "categoria": "educação",
+            "descricao": "curso de python",
+            "valor": 129.9
         },
         {
             "tipo": "despesa",
             "categoria": "lazer",
-            "descricao": "viagem",
-            "valor": 7300.0
+            "descricao": "cinema",
+            "valor": 38.0
+        },
+        {
+            "tipo": "despesa",
+            "categoria": "vestuário",
+            "descricao": "camiseta",
+            "valor": 79.9
+        },
+        {
+            "tipo": "despesa",
+            "categoria": "outros",
+            "descricao": "manutenção computador",
+            "valor": 150.0
         }
     ]
 }
