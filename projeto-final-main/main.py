@@ -8,7 +8,6 @@ arquivo = os.path.join(pasta_projeto, "dados.json")
 categorias_receitas = [
     "Salário",
     "Freelance",
-    "Investimentos",
     "Vendas",
     "Presentes",
     "Outros"
@@ -32,15 +31,15 @@ def salvar_dados(dados):
         json.dump(dados, f, indent=4, ensure_ascii=False)
 
 def carregar_dados():
-   with open(arquivo, "r", encoding="utf-8") as f:
-    return json.load(f)
+    with open(arquivo, "r", encoding="utf-8") as f:
+        return json.load(f)
 
 if not os.path.exists(arquivo):
     salvar_dados({
-        "limite_credito": 1000,
-        "movimentacoes": []
+        "saldo_minimo": 1000,
+        "movimentacoes": [],
     })
-
+    
 
 def mostrar_categorias(tipo):
   i = 0
@@ -81,9 +80,8 @@ def escolher_categoria(tipo):
 def cadastrar(tipo):
   mostrar_categorias(tipo)
   categoria_escolhida = escolher_categoria(tipo)
-
   descricao = input(f'Digite a descrição da {tipo}: ').lower()
-  
+
   while True:
     try:
       valor = float(input(f'Digite o valor da {tipo}: '))
@@ -97,7 +95,41 @@ def cadastrar(tipo):
       print('\nValor inválido. Por favor, digite um número.')
 
   categoria = converter_categoria(categoria_escolhida, tipo)
-  
+
+  if tipo == 'receita':
+    while True:
+      try:
+        investir = int(input(f'Você deseja destinar uma parte desse valor para os investimentos?\n1 para sim 2 para não: '))
+        if investir in (1, 2):
+          break
+        print('\nDigite 1 ou 2.')
+      except ValueError:
+        print('\nDigite apenas números.')
+
+    if investir == 1:
+      while True:
+        try:
+          porcentagem = float(input('Qual a porcentagem desse valor que você deseja investir? '))
+          if 0 <= porcentagem <= 100:
+            break
+          print('\nA porcentagem deve estar entre 0 e 100.')
+        except ValueError:
+          print('\nDigite apenas números.')
+
+      valor_investido = (valor / 100) * porcentagem
+      valor = valor - valor_investido
+
+      dados = carregar_dados()
+      dados['movimentacoes'].append({
+          "tipo": "investimento",
+          "categoria": "investimentos",
+          "descricao": f'investido através da receita {descricao}',
+          "valor": valor_investido
+      })
+      print(f'\nDe um total de R${valor + valor_investido:.2f}, R${valor:.2f} ficou disponível e R${valor_investido:.2f} foi investido.')
+
+      salvar_dados(dados)
+
   return {
     "tipo": tipo,
     "categoria": categoria,
@@ -106,26 +138,34 @@ def cadastrar(tipo):
   }
 
 
-def alterar_limite():
+def alterar_saldo_minimo():
   dados = carregar_dados()
-  print(f'\nLimite atual: R$ {dados["limite_credito"]:.2f}')
+
+  print(f'\nSaldo mínimo atual: R$ {dados["saldo_minimo"]:.2f}')
 
   while True:
     try:
-      novo_limite = float(input('Digite o novo limite de crédito: '))
+      novo_saldo_minimo = float(input('Digite o novo saldo mínimo: '))
 
-      if novo_limite > 0:
+      if novo_saldo_minimo >= 0:
         break
-      print('\nO limite de crédito deve ser maior que zero.')
+      print('\nO saldo mínimo deve ser maior ou igual a zero.')
 
     except ValueError:
       print('\nValor inválido. Por favor, digite um número.')
 
-  dados['limite_credito'] = novo_limite
+  dados['saldo_minimo'] = novo_saldo_minimo
 
   salvar_dados(dados)
-  print("Limite alterado com sucesso!")
+  print("Saldo mínimo alterado com sucesso!\n")
 
+def calcular_valor_investido():
+  dados = carregar_dados()
+  valor_investido = 0
+  for movimentacao in dados['movimentacoes']:
+    if movimentacao['tipo'] == 'investimento':
+      valor_investido += movimentacao['valor']
+  return valor_investido
 
 def calcular_saldo():
   dados = carregar_dados()
@@ -137,37 +177,54 @@ def calcular_saldo():
       saldo_atual -= movimentacao['valor']
   return saldo_atual
 
-
-def consultar_saldo():
+def consultar_saldo(tipo):
   saldo = calcular_saldo()
   print(f'\nSaldo Atual: R$ {saldo:.2f}\n')
+
+  if tipo == 'completo':
+    dados = carregar_dados()
+    categorias = {}
+
+    for movimentacao in dados['movimentacoes']:
+      if movimentacao['tipo'] == 'despesa':
+        categoria = movimentacao['categoria']
+
+        if categoria not in categorias:
+          categorias[categoria] = 0
+
+        categorias[categoria] += movimentacao['valor']
+
+    print('Gastos por categoria:')
+
+    for categoria, valor in sorted(categorias.items()):
+      print(f'- {categoria}: R$ {valor:.2f}')
 
 
 def validar_cadastro(movimentacao):
   saldo_atual = calcular_saldo()
   dados = carregar_dados()
-  limite_credito = dados['limite_credito']
+  saldo_minimo = dados['saldo_minimo']
 
   if movimentacao['tipo'] == 'receita':
     saldo_futuro = saldo_atual + movimentacao['valor']
-
   else:
     saldo_futuro = saldo_atual - movimentacao['valor']
 
-  if saldo_futuro < -limite_credito:
-    print("\nEssa operação ultrapassa seu limite de crédito! Cadastro cancelado!")
-    return False
+  if saldo_futuro < 0:
+    print(f"\nAtenção! Esta operação deixará seu saldo negativo (R${saldo_futuro:.2f}).")
 
-  elif saldo_futuro < 0:
-    print("\nAtenção! Esta operação deixará seu saldo negativo.")
-    return True
+  elif saldo_futuro < saldo_minimo:
+    diferenca = saldo_minimo - saldo_futuro
+    print(f"\nSeu saldo ficará R${diferenca:.2f} abaixo da sua meta de saldo mínimo.")
 
-  elif saldo_atual < 0 and saldo_futuro >= 0:
-    print("\nParabéns! Seu saldo voltou ao positivo.")
-    return True
-  
   else:
-    return True
+    diferenca = saldo_futuro - saldo_minimo
+    print(f"\nParabéns! Seu saldo ficará R${diferenca:.2f} acima da sua meta de saldo mínimo.")
+
+  if saldo_atual < 0 and saldo_futuro >= 0:
+    print("Seu saldo voltou ao positivo!")
+
+  return True
       
 
 def consultar_historico():
@@ -178,7 +235,6 @@ def consultar_historico():
     print(f'\nMovimentação {contador}:')
     for keys, value in movimentacao.items():
       print(f'{keys}: {value}')
-
 
 def consultar_transacao_por_categoria(categoria):
   dados = carregar_dados()
@@ -201,7 +257,8 @@ while opcao != 0:
   print('3 - Consultar resumo do saldo')
   print('4 - Ver histórico de transações')
   print('5 - Consulta de transação por categoria')
-  print('6 - Alterar limite de crédito')
+  print('6 - Alterar saldo mínimo')
+  print('7 - Verificar total investido')
   print('0 - Sair\n')
 
   try:
@@ -224,7 +281,7 @@ while opcao != 0:
     else:
       print('Receita não cadastrada')
 
-    consultar_saldo()
+    consultar_saldo("simplificado")
 
   elif opcao == 2:
     movimentacao = cadastrar('despesa')
@@ -239,23 +296,33 @@ while opcao != 0:
     else:
       print('Despesa não cadastrada')
 
-    consultar_saldo()
+    consultar_saldo("simplificado")
 
   elif opcao == 3:
-    consultar_saldo()
+    consultar_saldo("completo")
 
   elif opcao == 4:
     consultar_historico()
 
   elif opcao == 5:
     tipo = input('Você deseja buscar uma receita ou despesa? ').lower().replace(" ", "")
+    if tipo not in ('receita', 'despesa'):
+      print('Opção inválida.')
+      continue
     mostrar_categorias(tipo)
     categoria_escolhida = escolher_categoria(tipo)
     categoria = converter_categoria(categoria_escolhida, tipo)
     consultar_transacao_por_categoria(categoria)
 
   elif opcao == 6:
-    alterar_limite()
+    alterar_saldo_minimo()
+  
+  elif opcao == 7:
+    valor_investido = calcular_valor_investido()
+    print(f'O total investido é de R${valor_investido:.2f}')
+
+  elif opcao == 0:
+    print("Encerrando programa.")
 
   else:
     print('Opção inválida. Por favor, escolha uma opção válida.')
